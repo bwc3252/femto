@@ -5,9 +5,9 @@ RM = rm
 SOURCES = src/main.c src/buffer.c src/line.c
 OBJECTS = $(SOURCES:.c=.o)
 
-.PHONY: all clean directories
+.PHONY: all clean
 
-all: $(TARGET)
+all: directories $(TARGET)
 
 directories: build
 
@@ -22,6 +22,3 @@ $(TARGET) : $(OBJECTS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-build/:
-	mkdir build/
