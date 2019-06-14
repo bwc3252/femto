@@ -8,7 +8,6 @@
 struct buffer_s {
     char *name;
     line_t head;
-    line_t tail;
     unsigned int line_count;
 } buffer_s;
 
@@ -22,7 +21,7 @@ typedef struct buffer_s *buffer_t;
 //////////////////////////////////
 
 // Create an empty buffer
-buffer_t new_buffer(char *name);
+buffer_t create_buffer(const char *name);
 
 // Deallocate a buffer
 void destroy_buffer(buffer_t buffer);
@@ -37,6 +36,9 @@ void destroy_buffer(buffer_t buffer);
 void save_buffer(buffer_t buffer);
 
 // Read a file into a buffer
-buffer_t read_into_buffer(char *filename);
+buffer_t read_into_buffer(const char *filename);
+
+// Get all the text contained in a range of lines as a string
+char *get_lines_as_string(buffer_t buffer, unsigned int start, unsigned int end);
 
 #endif

@@ -6,10 +6,10 @@
 // adequate for now. It has the advantage of allowing efficient insertions
 // and deletions, when compared with storing the entire file as a string.
 struct line_s {
-    struct line_s *previous;    // previous line
     struct line_s *next;        // next line
+    struct line_s *previous;    // previous line
     char *text;                 // character array
-    unsigned int max_size;      // size of allocated character array (in bytes)
+    unsigned int max_length;      // size of allocated character array (in bytes)
     unsigned int length;        // current length of line
 } line_s;
 
@@ -51,6 +51,9 @@ void delete_line(line_t line);
 
 // Insert a character in a line. The given column MUST be in the line.
 void insert_character(line_t line, char c, unsigned int col);
+
+// Insert a character at the end of a line
+void insert_character_at_end(line_t line, char c);
 
 // Delete a character from a line. The given column MUST be in the line.
 void delete_character(line_t line, unsigned int col);
