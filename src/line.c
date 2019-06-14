@@ -12,7 +12,18 @@
 //////////////////////////////////
 
 // Create a line with text
-line_t create_line(char *text) {
+line_t create_line(void) {
+    line_t line = malloc(sizeof(struct line_s));
+    line->previous = NULL;
+    line->next = NULL;
+    line->max_length = 1;
+    line->length = 0;
+    line->text = calloc(2, sizeof(char));
+    return line;
+}
+
+// create a line and put text in it
+line_t create_line_with_text(char *text) {
     line_t line = malloc(sizeof(struct line_s));
     line->previous = NULL;
     line->next = NULL;
@@ -60,7 +71,7 @@ void insert_line_as_first(line_t to_insert, line_t first) {
 // Split a line into two lines at the specified column
 void split_line(line_t line, unsigned int col) {
     char *nextline_text = line->text + col; // add the offset
-    line_t next_line = create_line(nextline_text);
+    line_t next_line = create_line_with_text(nextline_text);
     char *new_text = calloc(col + 1, sizeof(char));
     strncpy(new_text, line->text, col); // copy the first (col) characters
     free(line->text); // free memory from the old line's text
@@ -106,15 +117,25 @@ void delete_line(line_t line) {
 
 // Insert a character in a line. The given column MUST be in the line.
 void insert_character(line_t line, char c, unsigned int col) {
-    
+    // check if allocated space is large enough
+    if (line->max_length == line->length) {
+        line->text = realloc(line->text, (2 * line->max_length) + 1);
+        line->max_length = 2 * line->max_length;
+    }
+    // shift everything after col to the right by 1
+    for (int i = line->length; i >= col; -- i) {
+        line->text[i + 1] = line->text[i];
+    }
+    ++ line->length;
+    line->text[col] = c;
 }
 
 // Insert a character at the end of a line
 void insert_character_at_end(line_t line, char c) {
     // check if allocated space is large enough
     if (line->max_length == line->length) {
-        line->text = realloc(line->text, 2 * (line->max_length + 1));
-        line->max_length = line->max_length + 1;
+        line->text = realloc(line->text, (2 * line->max_length) + 1);
+        line->max_length = 2 * line->max_length;
     }
     line->text[line->length] = c;
     ++ line->length;
@@ -123,5 +144,9 @@ void insert_character_at_end(line_t line, char c) {
 
 // Delete a character from a line. The given column MUST be in the line.
 void delete_character(line_t line, unsigned int col) {
-
+    // shift everything to the right of col over by 1
+    for (int i = col; i < line->length; ++ i) {
+        line->text[i] = line->text[i + 1];
+    }
+    -- line->length;
 }

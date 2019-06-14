@@ -62,14 +62,14 @@ buffer_t read_into_buffer(const char *filename) {
     char c;
     line_t line;
     if ((c = fgetc(file)) != EOF) {
-        buffer->head = create_line("");
+        buffer->head = create_line();
         line = buffer->head;
         ++ buffer->line_count;
     }
     while (c != EOF) {
         if (c == '\n') {
             //line->next = create_line("");
-            insert_line_after(create_line(""), line);
+            insert_line_after(create_line(), line);
             line = line->next;
             ++ buffer->line_count;
         }

@@ -22,8 +22,11 @@ typedef struct line_s *line_t;
 //                              //
 //////////////////////////////////
 
+// Create a line
+line_t create_line(void);
+
 // Create a line with text
-line_t create_line(char *text);
+line_t create_line_with_text(char *text);
 
 // Deallocate a line
 void destroy_line(line_t line);

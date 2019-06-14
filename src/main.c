@@ -16,6 +16,21 @@ int main(int argc, char **argv) {
     printf("%s", text);
     free(text);
     save_buffer(buffer);
+    printf("-----------------\n");
+    line_t line = buffer->head;
+    insert_character(line, 'w', 3);
+    insert_character(line, 'w', 3);
+    insert_character(line, 'w', 3);
+    text = get_lines_as_string(buffer, 1, buffer->line_count);
+    printf("%s", text);
+    free(text);
+    printf("-----------------\n");
+    delete_character(line, 3);
+    delete_character(line, 3);
+    delete_character(line, 3);
+    text = get_lines_as_string(buffer, 1, buffer->line_count);
+    printf("%s", text);
+    free(text);
     destroy_buffer(buffer);
     return 0;
 }
