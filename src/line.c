@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "line.h"
 
@@ -24,6 +25,9 @@ line_t create_line(void) {
 
 // create a line and put text in it
 line_t create_line_with_text(char *text) {
+    if (strlen(text) == 0) {
+        return create_line();
+    }
     line_t line = malloc(sizeof(struct line_s));
     line->previous = NULL;
     line->next = NULL;
@@ -70,25 +74,19 @@ void insert_line_as_first(line_t to_insert, line_t first) {
 
 // Split a line into two lines at the specified column
 void split_line(line_t line, unsigned int col) {
-    char *nextline_text = line->text + col; // add the offset
-    line_t next_line = create_line_with_text(nextline_text);
-    char *new_text = calloc(col + 1, sizeof(char));
-    strncpy(new_text, line->text, col); // copy the first (col) characters
-    free(line->text); // free memory from the old line's text
-    line->text = new_text;
-    // put lines in correct order
+    // create a new line
+    line_t next_line = create_line_with_text(line->text + col);
+    // insert it in linked list
+    next_line->previous = line;
     next_line->next = line->next;
     line->next = next_line;
-    // fix line lengths
+    // put a NULL terminator in the current line's text (to truncate it)
+    line->text[col] = '\0';
     line->length = col;
-    next_line->length = strlen(next_line->text);
 }
 
 // Concatenate line onto the end of the previous line
-void concatenate_line(line_t line) {
-    if (line->previous == NULL) {
-        return;        
-    }
+line_t concatenate_line(line_t line) {
     char *prev_text = line->previous->text;
     // check if there's enough space
     if (line->previous->max_length < (line->previous->length + line->length)) {
@@ -98,7 +96,9 @@ void concatenate_line(line_t line) {
     }
     strcpy(prev_text + line->previous->length, line->text);
     line->previous->length = strlen(line->previous->text);
+    line_t ret = line->previous;
     delete_line(line);
+    return ret;
 }
 
 // Delete a line
@@ -123,7 +123,7 @@ void insert_character(line_t line, char c, unsigned int col) {
         line->max_length = 2 * line->max_length;
     }
     // shift everything after col to the right by 1
-    for (int i = line->length; i >= col; -- i) {
+    for (int i = line->length; i >= (int)col; -- i) {
         line->text[i + 1] = line->text[i];
     }
     ++ line->length;
@@ -149,4 +149,5 @@ void delete_character(line_t line, unsigned int col) {
         line->text[i] = line->text[i + 1];
     }
     -- line->length;
+    line->text[line->length] = '\0';
 }

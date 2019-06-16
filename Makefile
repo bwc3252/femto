@@ -1,5 +1,6 @@
 CC= gcc
-CFLAGS+=-std=c99 -pedantic -Wall -ggdb
+CFLAGS += -std=c99 -pedantic -Wall -ggdb
+LFLAGS = -lncurses
 TARGET = build/femto
 RM = rm
 SOURCES = src/main.c src/buffer.c src/line.c
@@ -17,8 +18,8 @@ build:
 clean:
 	$(RM) $(TARGET) $(OBJECTS)
 
-$(TARGET) : $(OBJECTS)
+$(TARGET) : $(OBJECTS) $(LFLAGS)
 	$(CC) $^ -o $@
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<

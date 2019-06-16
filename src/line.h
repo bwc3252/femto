@@ -47,7 +47,7 @@ void insert_line_as_first(line_t to_insert, line_t first);
 void split_line(line_t line, unsigned int col);
 
 // Concatenate next line onto the end of given line
-void concatenate_line(line_t line);
+line_t concatenate_line(line_t line);
 
 // Delete a line
 void delete_line(line_t line);
