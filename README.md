@@ -11,8 +11,6 @@
 
 A simple text editor written in C.
 
-![alt text](https://github.com/bwc3252/femto/blob/master/Images/screenshot.png "Screenshot")
-
 This project is purely for fun and is not intended to be used by anyone for anything.
 
 ## Installation
