@@ -54,7 +54,7 @@ void save_buffer(buffer_t buffer) {
         line = line->next;
     }
     // get the contents of the buffer as a string
-    char *text = get_lines_as_string(buffer, 1, buffer->line_count, 0, max_line);
+    char *text = get_lines_as_string(buffer, 0, buffer->line_count, 0, max_line);
     FILE *file = fopen(buffer->name, "w");
     fputs(text, file);
     fclose(file);
