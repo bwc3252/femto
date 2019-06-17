@@ -44,8 +44,17 @@ void destroy_buffer(buffer_t buffer) {
 
 // Save the buffer
 void save_buffer(buffer_t buffer) {
+    // find the longest line
+    int max_line = 0;
+    line_t line = buffer->head;
+    while (line != NULL) {
+        if (line->length > max_line) {
+            max_line = line->length;
+        }
+        line = line->next;
+    }
     // get the contents of the buffer as a string
-    char *text = get_lines_as_string(buffer, 1, buffer->line_count);
+    char *text = get_lines_as_string(buffer, 1, buffer->line_count, 0, max_line);
     FILE *file = fopen(buffer->name, "w");
     fputs(text, file);
     fclose(file);
@@ -73,6 +82,11 @@ buffer_t read_into_buffer(const char *filename) {
             line = line->next;
             ++ buffer->line_count;
         }
+        else if (c == '\t') {
+            for (int i = 0; i < 4; ++ i) {
+                insert_character_at_end(line, ' ');
+            }
+        }
         else {
             insert_character_at_end(line, c);
         }
@@ -89,41 +103,50 @@ buffer_t read_into_buffer(const char *filename) {
     return buffer;
 }
 
+static char *reallocate_string(char *str, int *size, int *max_size) {
+    if (*size == *max_size) {
+        str = realloc(str, 2 * (*max_size) * sizeof(char));
+        *max_size *= 2;
+    }
+    return str;
+}
+
 // Get all the text contained in a range of lines as a string. If end is out of
 // range, will only go to end of buffer. If start is out of range, will return
 // an empty string.
-char *get_lines_as_string(buffer_t buffer, unsigned int start, unsigned int end) {
-    // get a count of characters so we know how large to make the array
-    unsigned int char_count = 0;
-    unsigned int line_no = 1;
+char *get_lines_as_string(buffer_t buffer, int top, int bottom,
+        int left, int right) {
+    // allocate space for string
+    char *str = calloc(1, sizeof(char));
+    str[0] = '\0';
+    int max_size = 1;
+    int size = 0;
+    // iterate to first line
     line_t line = buffer->head;
-    // iterate to start of range
-    while (line_no < start && line != NULL) {
-        ++ line_no;
+    int i = 0;
+    while (i < top && line != NULL) {
+        ++ i;
         line = line->next;
     }
-    line_t start_line = line;
-    while (line_no <= end && line != NULL) {
-        char_count += strlen(line->text) + 1; // add 1 for \n
-        ++ line_no;
-        line = line->next;
-    }
-    ++ char_count; // add 1 for \0
-    char *ret = calloc(char_count, sizeof(char));
-    // start putting characters in ret
-    unsigned int ind = 0;
-    line_no = start;
-    line = start_line; // go back to start of range
-    while (line_no <= end && line != NULL) {
-        for (int i = 0; i < line->length; ++ i) {
-            ret[ind] = line->text[i];
-            ++ ind;
+    // start filling string
+    int k = 0;
+    while (i <= bottom && line != NULL) {
+        if (left < line->length) {
+            for (int j = left; j < line->length && j < right; ++ j) {
+                str = reallocate_string(str, &size, &max_size);
+                str[k] = line->text[j];
+                ++ k;
+                ++ size;
+            }
         }
-        ret[ind] = '\n';
-        ++ ind;
+        str = reallocate_string(str, &size, &max_size);
+        str[k] = '\n';
+        ++ k;
+        ++ size;
         line = line->next;
-        ++ line_no;
+        ++ i;
     }
-    ret[ind] = '\0';
-    return ret;
+    str = reallocate_string(str, &size, &max_size);
+    str[k] = '\0';
+    return str;
 }

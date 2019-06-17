@@ -39,6 +39,7 @@ void save_buffer(buffer_t buffer);
 buffer_t read_into_buffer(const char *filename);
 
 // Get all the text contained in a range of lines as a string
-char *get_lines_as_string(buffer_t buffer, unsigned int start, unsigned int end);
+char *get_lines_as_string(buffer_t buffer, int top, int bottom,
+        int left, int right);
 
 #endif

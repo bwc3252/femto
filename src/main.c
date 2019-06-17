@@ -8,9 +8,26 @@
 
 #include "line.h"
 #include "buffer.h"
+#include "display.h"
 
 // macro to check for CTRL in front of keypress
 #define CTRL(k) ((k)  & 0x1f)
+
+#define ROW_START 2
+
+#define UP          0
+#define DOWN        1
+#define LEFT        2
+#define RIGHT       3
+#define NEWLINE     4
+#define BACKSPACE   5
+#define CHAR        6
+#define SAVE        7
+#define EXIT        8
+
+// function declarations
+int file_exists(char *filename);
+void run(buffer_t buffer);
 
 int file_exists(char *filename) {
     FILE *fp;
@@ -24,96 +41,66 @@ int file_exists(char *filename) {
 }
 
 void run(buffer_t buffer) {
-    int row = 0;
-    int col = 0;
-    int reprint_buffer;
-    line_t line = buffer->head; // TODO this will break for empty buffers
-    char *text = get_lines_as_string(buffer, 1, buffer->line_count);
-    initscr();
-    raw();
-    noecho();
-    keypad(stdscr, TRUE);
-    printw(text);
-    free(text);
-    // input loop
+    view_t view = initialize(buffer);
+    line_t line = buffer-> head;
+    cursor_t cursor;
+    int loop = 1;
+    int refresh_display = 1;
     int c;
-    move(0, 0);
-    while (1) {
-        reprint_buffer = 0;
-        c = getch();
-        if (c == KEY_LEFT) {
-            if (col > 0) {
-                -- col;
-            }
+    while (loop) {
+        if (refresh_display) {
+            display(view);
         }
-        else if (c == KEY_RIGHT) {
-            if (col < line->length) {
-                ++ col;
-            }
-        }
-        else if (c == KEY_UP) {
-            if (row > 0) {
-                -- row;
-                line = line->previous;
-                if (col > line->length) {
-                    col = line->length;
+        cursor = view->cursor;
+        c = wgetch(view->main_window);
+        switch(c) {
+            case KEY_LEFT:
+                if (cursor->abs_col > 0) {
+                    -- cursor->abs_col;
+                    -- cursor->rel_col;
                 }
-            }
-        }
-        else if (c == KEY_DOWN) {
-            if (row < buffer->line_count - 1) {
-                ++ row;
-                line = line->next;
-                if (col > line->length) {
-                    col = line->length;
+                break;
+            case KEY_RIGHT:
+                if (cursor->abs_col < line->length) {
+                    ++ cursor->abs_col;
+                    ++ cursor->rel_col;
                 }
-            }
-        }
-        else if (c == CTRL('s')) {
-            save_buffer(buffer);
-        }
-        else if (c == CTRL('x')) {
-            break;
-        }
-        else if (c == '\n') {
-            split_line(line, col);
-            line = line->next;
-            reprint_buffer = 1;
-            ++ buffer->line_count;
-            ++ row;
-            col = 0;
-        }
-        else if (c == KEY_BACKSPACE) { // backspace
-            if (col == 0) {
-                if (row > 0) {
-                    col = line->previous->length;
-                    line = concatenate_line(line);
-                    -- buffer->line_count;
-                    -- row;
+                break;
+            case KEY_UP:
+                if (line->previous != NULL) {
+                    line = line->previous;
+                    -- cursor->abs_row;
+                    -- cursor->rel_row;
+                    // handle case where cursor was moved up a line into 
+                    // "emtpy space"
+                    if (cursor->abs_col > line->length) {
+                        cursor->rel_col -= cursor->abs_col - line->length;
+                        cursor->abs_col = line->length;
+                    }
                 }
-            }
-            else {
-                delete_character(line, col - 1);
-                -- col;
-            }
-            reprint_buffer = 1;
+                break;
+            case KEY_DOWN:
+                if (line->next != NULL) {
+                    line = line->next;
+                    ++ cursor->abs_row;
+                    ++ cursor->rel_row;
+                    // handle case where cursor was moved down a line into 
+                    // "emtpy space"
+                    if (cursor->abs_col > line->length) {
+                        cursor->rel_col -= cursor->abs_col - line->length;
+                        cursor->abs_col = line->length;
+                    }
+                }
+                break;
+            case KEY_RESIZE:
+                wclear(view->main_window);
+                break;
+            case 'x':
+                loop = 0;
+                break;
         }
-        else {
-            insert_character(line, c, col);
-            ++ col;
-            reprint_buffer = 1;
-        }
-        if (reprint_buffer) {
-            clear();
-            text = get_lines_as_string(buffer, 1, buffer->line_count);
-            mvprintw(0, 0, text);
-            free(text);
-        }
-        move(15, 0);
-        printw("row: %d, column: %d", row, col);
-        move(row, col);
-        refresh();
     }
+    destroy_view(view);
     endwin();
 }
 
