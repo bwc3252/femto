@@ -8,7 +8,10 @@ OBJECTS = $(SOURCES:.c=.o)
 
 .PHONY: all clean
 
-all: directories $(TARGET)
+all: directories logfile $(TARGET)
+
+logfile:
+	touch log.txt
 
 directories: build
 
@@ -16,7 +19,7 @@ build:
 	mkdir -p build/
 
 clean:
-	$(RM) $(TARGET) $(OBJECTS)
+	$(RM) $(TARGET) $(OBJECTS) log.txt
 
 $(TARGET) : $(OBJECTS)
 	$(CC) $^ -o $@ $(LFLAGS)

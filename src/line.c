@@ -77,6 +77,9 @@ void split_line(line_t line, unsigned int col) {
     // create a new line
     line_t next_line = create_line_with_text(line->text + col);
     // insert it in linked list
+    if (line->next != NULL) {
+        line->next->previous = next_line;
+    }
     next_line->previous = line;
     next_line->next = line->next;
     line->next = next_line;

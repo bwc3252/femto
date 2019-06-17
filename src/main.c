@@ -28,6 +28,13 @@
 // function declarations
 int file_exists(char *filename);
 void run(buffer_t buffer);
+void log_message(char *message);
+
+void log_message(char *message) {
+    FILE *file = fopen("log.txt", "a");
+    fprintf(file, "%s\n", message);
+    fclose(file);
+}
 
 int file_exists(char *filename) {
     FILE *fp;
@@ -45,12 +52,9 @@ void run(buffer_t buffer) {
     line_t line = buffer-> head;
     cursor_t cursor;
     int loop = 1;
-    int refresh_display = 1;
     int c;
     while (loop) {
-        if (refresh_display) {
-            display(view);
-        }
+        display(view);
         cursor = view->cursor;
         c = wgetch(view->main_window);
         switch(c) {
@@ -95,9 +99,44 @@ void run(buffer_t buffer) {
             case KEY_RESIZE:
                 wclear(view->main_window);
                 break;
-            case 'x':
+            case CTRL('x'):
                 loop = 0;
                 break;
+            case CTRL('s'):
+                save_buffer(buffer);
+                break;
+            case '\n':
+                split_line(line, cursor->abs_col);
+                line = line->next;
+                ++ buffer->line_count;
+                ++ cursor->rel_row;
+                ++ cursor->abs_row;
+                cursor->abs_col = 0;
+                cursor->rel_col = 0;
+                view->left = 0;
+                break;
+            case KEY_BACKSPACE:
+                if (cursor->abs_col == 0) {
+                    if (line->previous != NULL) {
+                        cursor->abs_col = line->previous->length;
+                        cursor->rel_col += cursor->abs_col - cursor->rel_col;
+                        line = concatenate_line(line);
+                        -- cursor->abs_row;
+                        -- cursor->rel_row;
+                        -- buffer->line_count;
+                        wclear(view->main_window);
+                    }
+                }
+                else {
+                    delete_character(line, cursor->abs_col - 1);
+                    -- cursor->abs_col;
+                    -- cursor->rel_col;
+                }
+                break;
+            default: // insert an ordinary character TODO tabs to spaces
+                insert_character(line, c, cursor->abs_col);
+                ++ cursor->abs_col;
+                ++ cursor->rel_col;
         }
     }
     destroy_view(view);
