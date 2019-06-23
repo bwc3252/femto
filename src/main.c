@@ -133,6 +133,21 @@ void run(buffer_t buffer) {
                     -- cursor->rel_col;
                 }
                 break;
+            case '\t': // handle tab character
+                insert_character(line, ' ', cursor->abs_col);
+                ++ cursor->abs_col;
+                ++ cursor->rel_col;
+                while (cursor->abs_col % 4 != 0) {
+                    insert_character(line, ' ', cursor->abs_col);
+                    ++ cursor->abs_col;
+                    ++ cursor->rel_col;
+                }
+                break;
+            case KEY_DC:
+                if (cursor->abs_col < line->length) {
+                    delete_character(line, cursor->abs_col);
+                }
+                break;
             default: // insert an ordinary character TODO tabs to spaces
                 insert_character(line, c, cursor->abs_col);
                 ++ cursor->abs_col;
